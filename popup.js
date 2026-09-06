@@ -11,6 +11,13 @@ function ago(ts) {
   return hrs === 1 ? '1 hr ago' : hrs + ' hrs ago';
 }
 
+function setPill(kind, text) {
+  const pill = document.getElementById('pill');
+  const status = document.getElementById('status');
+  pill.className = 'pill ' + kind; // ok | idle | bad
+  status.textContent = text;
+}
+
 async function render() {
   const s = await chrome.storage.local.get([
     'connected',
@@ -20,31 +27,41 @@ async function render() {
     'lastPushCount',
     'lastError',
   ]);
-  const dot = document.getElementById('dot');
-  const status = document.getElementById('status');
   const shared = document.getElementById('shared');
 
+  // Three states:
+  //   ok   (green) — reachable + last share (if any) succeeded
+  //   bad  (red)   — reachable but the last session share FAILED
+  //   idle (grey)  — app not running / not reachable
   if (s.connected) {
-    dot.className = 'dot ok';
-    status.textContent = 'Connected to QuickListing ✓';
+    if (s.lastPushOk === false) {
+      setPill('bad', 'Connected — last share failed');
+    } else {
+      setPill('ok', 'Connected to QuickListing ✓');
+    }
   } else {
-    dot.className = 'dot bad';
-    status.textContent = 'QuickListing not reachable';
+    setPill('idle', 'QuickListing app not running');
   }
 
   if (s.lastPushAt) {
     const when = ago(s.lastPushAt);
-    shared.textContent = s.lastPushOk
-      ? 'Session shared ' + when + ' (' + (s.lastPushCount || 0) + ' cookies)'
-      : 'Last share failed (' + when + ')';
+    shared.innerHTML = s.lastPushOk
+      ? 'Session shared <b>' + when + '</b>'
+      : 'Last share failed <b>' + when + '</b>';
   } else {
-    shared.textContent = 'No session shared yet.';
+    shared.textContent = s.connected
+      ? 'No session shared yet — nothing needed.'
+      : 'Open the QuickListing app to connect.';
   }
 }
 
 // Ask the worker to refresh status immediately, then render.
-chrome.runtime.sendMessage({ type: 'ping' }, () => {
-  // ignore response; storage is the source of truth
+try {
+  chrome.runtime.sendMessage({ type: 'ping' }, () => {
+    void chrome.runtime.lastError; // ignore "no receiver"; storage is the source of truth
+    render();
+  });
+} catch (_e) {
   render();
-});
+}
 render();

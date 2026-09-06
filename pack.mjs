@@ -35,7 +35,15 @@ const DIST = join(DIR, 'dist');
 const DEFAULT_CDN = 'https://REPLACE-ME.cdn/cookie-bridge'; // swap for your real CDN base
 
 // Files that ship INSIDE the extension zip (never the key, pack script, dist, docs).
-const INCLUDE = ['manifest.json', 'background.js', 'popup.html', 'popup.js'];
+const INCLUDE = [
+  'manifest.json',
+  'background.js',
+  'popup.html',
+  'popup.js',
+  'icons/icon-16.png',
+  'icons/icon-48.png',
+  'icons/icon-128.png',
+];
 
 function readManifest() {
   return JSON.parse(readFileSync(MANIFEST_PATH, 'utf-8'));
@@ -214,10 +222,14 @@ async function pack(args) {
   const { crx, id } = crx3(zip, priv);
   const crxPath = join(DIST, `cookie-bridge-${version}.crx`);
   writeFileSync(crxPath, crx);
+  // Standalone zip too (load-unpacked / Web Store submission / release asset).
+  const zipPath = join(DIST, `quicklisting-bridge-${version}.zip`);
+  writeFileSync(zipPath, zip);
   const { codebase } = writeUpdateXml(id, version, cdn);
 
   console.log('Extension ID:', id);
   console.log('CRX:         ', crxPath, `(${(crx.length / 1024).toFixed(1)} KB)`);
+  console.log('ZIP:         ', zipPath, `(${(zip.length / 1024).toFixed(1)} KB)`);
   console.log('update.xml:  ', join(DIST, 'update.xml'));
   console.log('codebase:    ', codebase);
   if (cdn === DEFAULT_CDN) {

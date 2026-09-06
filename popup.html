@@ -4,58 +4,126 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
+      :root {
+        --brand: #2b6499;
+        --brand-dark: #24567f;
+        --ink: #1c2b3a;
+        --muted: #667585;
+        --line: #e8edf2;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        width: 260px;
+        width: 300px;
         margin: 0;
-        padding: 14px 16px;
-        color: #1c1e21;
+        color: var(--ink);
+        background: #fff;
       }
-      h1 {
-        font-size: 14px;
-        margin: 0 0 10px;
-      }
-      .row {
+      .header {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        margin: 6px 0;
+        gap: 11px;
+        padding: 16px 18px 14px;
+        background: linear-gradient(180deg, #f4f8fc 0%, #ffffff 100%);
+        border-bottom: 1px solid var(--line);
       }
-      .dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: #bbb;
+      .logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 9px;
+        box-shadow: 0 1px 3px rgba(43, 100, 153, 0.25);
         flex: none;
       }
-      .dot.ok {
-        background: #31a24c;
+      .title {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.1px;
       }
-      .dot.bad {
-        background: #e41e3f;
+      .subtitle {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 1px;
       }
-      .muted {
-        color: #65676b;
+      .body {
+        padding: 15px 18px 16px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        font-weight: 600;
+        width: 100%;
+      }
+      .pill .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex: none;
+      }
+      .pill.ok {
+        background: #e7f6ec;
+        color: #1a7f3c;
+      }
+      .pill.ok .dot {
+        background: #2fae54;
+      }
+      .pill.idle {
+        background: #f1f4f7;
+        color: #5b6b7b;
+      }
+      .pill.idle .dot {
+        background: #9aa8b6;
+      }
+      .pill.bad {
+        background: #fdecee;
+        color: #c0293f;
+      }
+      .pill.bad .dot {
+        background: #e0415b;
+      }
+      .shared {
+        margin-top: 11px;
         font-size: 12px;
+        color: var(--muted);
+      }
+      .shared b {
+        color: var(--ink);
+        font-weight: 600;
       }
       .note {
-        margin-top: 12px;
-        padding-top: 10px;
-        border-top: 1px solid #eee;
-        color: #8a8d91;
-        font-size: 11px;
-        line-height: 1.4;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+        color: #8a97a5;
+        font-size: 10.5px;
+        line-height: 1.5;
+      }
+      .note .lock {
+        color: var(--brand);
+        font-weight: 700;
       }
     </style>
   </head>
   <body>
-    <h1>QuickListing Cookie Bridge</h1>
-    <div class="row"><span id="dot" class="dot"></span><span id="status">Checking…</span></div>
-    <div class="row muted" id="shared">No session shared yet.</div>
-    <div class="note">
-      Prototype. Shares your Facebook session with the QuickListing desktop app on
-      THIS computer only, and only when the app asks. Nothing leaves your machine.
+    <div class="header">
+      <img class="logo" src="icons/icon-128.png" alt="QuickListing" />
+      <div>
+        <div class="title">QuickListing Connector</div>
+        <div class="subtitle">Keeps QuickListing signed in to Facebook</div>
+      </div>
+    </div>
+    <div class="body">
+      <div id="pill" class="pill idle"><span class="dot"></span><span id="status">Checking…</span></div>
+      <div class="shared" id="shared">No session shared yet.</div>
+      <div class="note">
+        <span class="lock">🔒 Private &amp; local.</span> Only shares your Facebook session with the
+        QuickListing app on this computer, and only when it asks. Nothing ever leaves your machine.
+      </div>
     </div>
     <script src="popup.js"></script>
   </body>

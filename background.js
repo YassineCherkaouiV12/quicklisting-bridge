@@ -1,4 +1,4 @@
-// QuickListing Cookie Bridge — MV3 service worker (PROTOTYPE).
+// QuickListing Connector — MV3 service worker (PROTOTYPE).
 //
 // Purpose: when the QuickListing desktop app loses its Facebook session AND the
 // server-side cookies are dead (so the app's own cookie vault can't recover),

@@ -1,4 +1,9 @@
-# QuickListing Cookie Bridge (Prototype)
+# QuickListing Connector (Prototype)
+
+> Dealer-facing name: **QuickListing Connector** (the Chrome toolbar / store name).
+> Formerly "QuickListing Cookie Bridge" / "QuickListing Bridge" — same extension,
+> same stable ID `maioaggefkmlmmomifagahdenaomfcga` (the ID comes from the signing
+> key, not the name, so renaming never changes it).
 
 Phase 2 of the FB-logout reliability fix. A tiny **companion Chrome extension**
 that rescues the logouts the app's cookie vault **cannot** — the ones where
@@ -169,26 +174,47 @@ hard-coded as `COOKIE_BRIDGE_EXT_ID` in
   `key.pem`, updates `manifest.json "key"`, and prints the **new** ID. Then update
   `COOKIE_BRIDGE_EXT_ID` + this README and re-host.
 
-## Release: pack → upload
+## Releases (GitHub, canonical repo)
+
+Releases are hosted as **GitHub release assets** on
+`YassineCherkaouiV12/quicklisting-bridge`. Each release ships three assets:
+`cookie-bridge-<ver>.crx`, `update.xml`, and `quicklisting-bridge-<ver>.zip`.
 
 ```bash
-cd cookie-bridge-extension
-# optional: node pack.mjs --bump=patch      # bump manifest version
-node pack.mjs --cdn=https://your.real.cdn/cookie-bridge
+# From the repo root (the canonical repo, NOT the stale gemini_desktop copy):
+node pack.mjs --bump=minor \
+  --cdn=https://github.com/YassineCherkaouiV12/quicklisting-bridge/releases/download/<ver>
 #  → dist/cookie-bridge-<ver>.crx
-#  → dist/update.xml   (points at <cdn>/cookie-bridge-<ver>.crx)
+#  → dist/quicklisting-bridge-<ver>.zip
+#  → dist/update.xml   (codebase → the <ver> release's .crx download URL)
+
+gh release create <ver> \
+  dist/cookie-bridge-<ver>.crx dist/update.xml dist/quicklisting-bridge-<ver>.zip \
+  --title "<ver>" --notes "…"
 ```
 
-Then **upload BOTH** `dist/cookie-bridge-<ver>.crx` and `dist/update.xml` to your
-CDN at those exact paths, and set runtime_config:
+### ⚠️ The app config must be updated on EVERY release
+
+`update.xml`'s `codebase` (and its own download URL) is **release-specific**:
+`…/releases/download/<ver>/…`. So after each release the app's runtime_config
 
 ```
-urls.cookieBridgeUpdateUrl = https://your.real.cdn/cookie-bridge/update.xml
+urls.cookieBridgeUpdateUrl = https://github.com/YassineCherkaouiV12/quicklisting-bridge/releases/download/<ver>/update.xml
 ```
 
-The `.crx` must be served with a sane content type (e.g.
-`application/x-chrome-extension` or `application/octet-stream`) and be publicly
-GET-able by the dealer's browser.
+**must be bumped to the new `<ver>` URL** (e.g. `1.1.0` for this release), or Chrome
+keeps checking the old release's manifest and never sees the update.
+👉 **Coordinator: set `urls.cookieBridgeUpdateUrl` to the 1.1.0 `update.xml` URL
+above after this release.**
+
+**TODO (stability):** host `update.xml` at a **stable, version-independent** URL
+(e.g. a GitHub Pages / CDN path like `…/quicklisting-bridge/latest/update.xml`, or
+the `latest` release download) whose `codebase` is rewritten to the newest CRX on
+each release — so the app's `urls.cookieBridgeUpdateUrl` is set **once** and never
+has to change per release. Until then it's a manual config bump every release.
+
+The `.crx` must be served with a sane content type (GitHub release assets serve as
+`application/octet-stream`) and be publicly GET-able by the dealer's browser.
 
 ## Exact policy the app writes (per OS)
 
