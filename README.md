@@ -4,6 +4,15 @@
 > Formerly "QuickListing Cookie Bridge" / "QuickListing Bridge" — same extension,
 > same stable ID `maioaggefkmlmmomifagahdenaomfcga` (the ID comes from the signing
 > key, not the name, so renaming never changes it).
+>
+> **1.2.0 — account-targeted:** the app now tells the extension WHICH Facebook
+> account it posts with (`expectedCUser` on `/bridge/status`). The extension only
+> pushes cookies when the browser's active `c_user` matches (or when there's no
+> constraint); if the browser is signed into a different FB it reports
+> `/bridge/wrong-account` instead of pushing the wrong session, and the app tells
+> the dealer to switch. No `c_user` in the browser → nothing shared. So the bridge
+> only ever adopts the account the app posts with; the app's `fbMismatchGate` stays
+> the final backstop.
 
 Phase 2 of the FB-logout reliability fix. A tiny **companion Chrome extension**
 that rescues the logouts the app's cookie vault **cannot** — the ones where

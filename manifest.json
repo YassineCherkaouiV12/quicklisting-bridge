@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "QuickListing Connector",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Keeps QuickListing connected to Facebook on this computer — shares your Facebook session with the QuickListing desktop app, only when it asks. Localhost only.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8K+HW4fVSDesBmIYwuOXArJ4IcrY1rdb9oZRXAWw4pb8IqStVznoWPj3Gr8jokDhPZr9PJdtL94yM5WAshCSBZNIUkwjJUtsapVIv0N8w76DsRaGAmh5kSRERSqp2+Ev19VhBbJykp5grOzN445rDYWtYZj8XUk47J7QEAodXj6/pDVb7nd+AmSLf0J4irbkF9+y6AslEpJRsHNSfyghRFFMoRSqskBXaYgqHqbTCENGYe3YvS7efyaSAObcBJfNKeLzDABNflt7uFOlbmKbXHQH1lKfY4u9/9j2k57s6FwHzSHQg4qRv1vM3/Qz8updq4z3vkbzMCYPLTZGKP04yQIDAQAB",
   "icons": {
@@ -9,8 +9,15 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["cookies", "alarms", "storage"],
-  "host_permissions": ["https://*.facebook.com/*", "http://127.0.0.1:47615/*"],
+  "permissions": [
+    "cookies",
+    "alarms",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.facebook.com/*",
+    "http://127.0.0.1:47615/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },

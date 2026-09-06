@@ -26,14 +26,23 @@ async function render() {
     'lastPushOk',
     'lastPushCount',
     'lastError',
+    'lastWrongAccount',
+    'lastWrongAt',
   ]);
   const shared = document.getElementById('shared');
 
-  // Three states:
-  //   ok   (green) — reachable + last share (if any) succeeded
-  //   bad  (red)   — reachable but the last session share FAILED
+  // A recent wrong-account signal takes precedence — the dealer needs to fix
+  // which Facebook their browser is signed into.
+  const wrongRecent =
+    s.lastWrongAccount && s.lastWrongAt && Date.now() - s.lastWrongAt < 5 * 60 * 1000;
+
+  // States:
+  //   bad  (red)   — wrong FB in browser, OR last share failed
+  //   ok   (green) — reachable + healthy
   //   idle (grey)  — app not running / not reachable
-  if (s.connected) {
+  if (s.connected && wrongRecent) {
+    setPill('bad', 'Wrong Facebook in this browser');
+  } else if (s.connected) {
     if (s.lastPushOk === false) {
       setPill('bad', 'Connected — last share failed');
     } else {
@@ -43,7 +52,10 @@ async function render() {
     setPill('idle', 'QuickListing app not running');
   }
 
-  if (s.lastPushAt) {
+  if (s.connected && wrongRecent) {
+    shared.textContent =
+      'Sign into the Facebook account this dealer posts with, then reload Facebook.';
+  } else if (s.lastPushAt) {
     const when = ago(s.lastPushAt);
     shared.innerHTML = s.lastPushOk
       ? 'Session shared <b>' + when + '</b>'

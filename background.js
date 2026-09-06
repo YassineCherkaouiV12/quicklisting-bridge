@@ -6,11 +6,20 @@
 // still logged into FB — hands the app a FRESH live session over loopback.
 //
 // How it works:
-//   • On a gentle poll (every ~30s) it GETs the app's loopback status endpoint.
-//   • Only when the app answers {needed:true} (app session dead + bridge enabled)
-//     does it read the full facebook.com cookie set + the browser User-Agent and
-//     POST them to the app. Pull-on-demand ONLY — never continuous streaming.
-//   • The app injects them and aligns its FB tab's UA so FB sees the same device.
+//   • On a gentle poll (every ~30s) it GETs the app's loopback status endpoint,
+//     which answers { needed, expectedCUser }.
+//   • Only when needed:true (app session dead/absent + bridge enabled) does it
+//     act — and it ONLY grabs the account the app actually posts with:
+//       - reads the browser's ACTIVE facebook.com c_user,
+//       - if it equals expectedCUser (or expectedCUser is null → no constraint)
+//         it pushes the full cookie set + User-Agent (pull-on-demand, never
+//         streaming),
+//       - if it DIFFERS it does NOT push the wrong account — it reports the
+//         mismatch to /bridge/wrong-account so the app can tell the dealer,
+//       - if there's no c_user (not logged into FB in this browser) it pushes
+//         nothing and just records "no session".
+//   • The app injects the (matching) cookies and aligns its FB tab's UA so FB
+//     sees the same device.
 //
 // Security (prototype — see the app's sessionBridge.ts for the matching TODOs):
 //   • Talks ONLY to http://127.0.0.1 (the app's loopback receiver). No external
@@ -39,6 +48,36 @@ async function getStatus() {
   const res = await fetch(APP_BASE + '/bridge/status', { headers: AUTH_HEADER });
   if (!res.ok) throw new Error('status HTTP ' + res.status);
   return res.json();
+}
+
+/** The browser's currently-active facebook.com c_user (the FB account the dealer
+ *  is signed into in THIS Chrome), or null when not logged into FB. */
+async function getActiveCUser() {
+  try {
+    const c = await chrome.cookies.get({ url: 'https://www.facebook.com', name: 'c_user' });
+    return c && c.value ? c.value : null;
+  } catch (_e) {
+    return null;
+  }
+}
+
+/** Tell the app the browser is signed into a DIFFERENT FB than the dealer posts
+ *  with — so it can surface it to the dealer. We do NOT push the wrong account. */
+async function reportWrongAccount(expected, browserCUser) {
+  await setState({
+    lastWrongAccount: { expected: expected || null, browser: browserCUser },
+    lastWrongAt: Date.now(),
+    lastPushOk: false,
+  });
+  try {
+    await fetch(APP_BASE + '/bridge/wrong-account', {
+      method: 'POST',
+      headers: { ...AUTH_HEADER, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expected: expected || null, browserCUser }),
+    });
+  } catch (_e) {
+    /* best-effort — the app will retry status next poll */
+  }
 }
 
 async function collectAndPush() {
@@ -71,8 +110,24 @@ async function tick() {
   try {
     const status = await getStatus();
     await setState({ connected: true, lastStatusAt: Date.now(), lastError: null });
-    if (status && status.needed) {
+    if (!status || !status.needed) return;
+
+    // Account-targeted: only ever grab the account the app posts with.
+    const expected = status.expectedCUser || null; // string | null (null = no constraint)
+    const active = await getActiveCUser();
+
+    if (!active) {
+      // Dealer isn't logged into Facebook in this browser — nothing to share.
+      await setState({ lastNoSessionAt: Date.now() });
+      return;
+    }
+    if (!expected || active === expected) {
+      // Matches the dealer's posting account (or no constraint) → safe to push.
+      await setState({ lastWrongAccount: null });
       await collectAndPush();
+    } else {
+      // Browser is signed into a DIFFERENT FB → never push the wrong account.
+      await reportWrongAccount(expected, active);
     }
   } catch (e) {
     await setState({ connected: false, lastError: String((e && e.message) || e) });
