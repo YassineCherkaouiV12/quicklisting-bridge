@@ -1,0 +1,13 @@
+{
+  "name": "quicklisting-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "QuickListing Bridge — companion Chrome extension that restores the desktop app's Facebook session (Phase 2/3 of the FB-logout reliability fix).",
+  "type": "module",
+  "scripts": {
+    "pack": "node pack.mjs"
+  },
+  "devDependencies": {
+    "archiver": "^7.0.1"
+  }
+}

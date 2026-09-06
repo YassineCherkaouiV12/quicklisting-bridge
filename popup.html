@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        width: 260px;
+        margin: 0;
+        padding: 14px 16px;
+        color: #1c1e21;
+      }
+      h1 {
+        font-size: 14px;
+        margin: 0 0 10px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        margin: 6px 0;
+      }
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #bbb;
+        flex: none;
+      }
+      .dot.ok {
+        background: #31a24c;
+      }
+      .dot.bad {
+        background: #e41e3f;
+      }
+      .muted {
+        color: #65676b;
+        font-size: 12px;
+      }
+      .note {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+        color: #8a8d91;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>QuickListing Cookie Bridge</h1>
+    <div class="row"><span id="dot" class="dot"></span><span id="status">Checking…</span></div>
+    <div class="row muted" id="shared">No session shared yet.</div>
+    <div class="note">
+      Prototype. Shares your Facebook session with the QuickListing desktop app on
+      THIS computer only, and only when the app asks. Nothing leaves your machine.
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
