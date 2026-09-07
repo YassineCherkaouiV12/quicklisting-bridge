@@ -26,21 +26,22 @@ async function render() {
     'lastPushOk',
     'lastPushCount',
     'lastError',
-    'lastWrongAccount',
-    'lastWrongAt',
+    'accountMismatch',
+    'hasBrowserSession',
   ]);
   const shared = document.getElementById('shared');
 
-  // A recent wrong-account signal takes precedence — the dealer needs to fix
-  // which Facebook their browser is signed into.
-  const wrongRecent =
-    s.lastWrongAccount && s.lastWrongAt && Date.now() - s.lastWrongAt < 5 * 60 * 1000;
+  // Persistent account-match state (recomputed every poll): true whenever this
+  // browser's Facebook is a DIFFERENT account than the one this dealer posts
+  // with. Shown as long as it's true — NOT a 5-minute window — so "Connected ✓"
+  // never masks a wrong account.
+  const mismatch = Boolean(s.accountMismatch);
 
   // States:
   //   bad  (red)   — wrong FB in browser, OR last share failed
-  //   ok   (green) — reachable + healthy
+  //   ok   (green) — reachable + healthy (and the right account)
   //   idle (grey)  — app not running / not reachable
-  if (s.connected && wrongRecent) {
+  if (s.connected && mismatch) {
     setPill('bad', 'Wrong Facebook in this browser');
   } else if (s.connected) {
     if (s.lastPushOk === false) {
@@ -52,9 +53,9 @@ async function render() {
     setPill('idle', 'QuickListing app not running');
   }
 
-  if (s.connected && wrongRecent) {
+  if (s.connected && mismatch) {
     shared.textContent =
-      'Sign into the Facebook account this dealer posts with, then reload Facebook.';
+      'This browser is signed into a different Facebook than this dealer posts with. Sign into the correct account here, then reload Facebook.';
   } else if (s.lastPushAt) {
     const when = ago(s.lastPushAt);
     shared.innerHTML = s.lastPushOk

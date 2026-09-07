@@ -109,12 +109,23 @@ async function collectAndPush() {
 async function tick() {
   try {
     const status = await getStatus();
-    await setState({ connected: true, lastStatusAt: Date.now(), lastError: null });
-    if (!status || !status.needed) return;
-
     // Account-targeted: only ever grab the account the app posts with.
-    const expected = status.expectedCUser || null; // string | null (null = no constraint)
+    const expected = status && status.expectedCUser ? String(status.expectedCUser) : null;
     const active = await getActiveCUser();
+    // PERSISTENT account-match state for the popup — computed on EVERY poll, not
+    // only when a push is needed. Otherwise, while the app already has a session
+    // (needed:false) the popup would show a plain green "Connected" even when this
+    // browser is signed into a DIFFERENT Facebook than the dealer posts with. Now
+    // the popup always tells the truth about the account match.
+    const accountMismatch = Boolean(expected && active && active !== expected);
+    await setState({
+      connected: true,
+      lastStatusAt: Date.now(),
+      lastError: null,
+      accountMismatch,
+      hasBrowserSession: Boolean(active),
+    });
+    if (!status || !status.needed) return;
 
     if (!active) {
       // Dealer isn't logged into Facebook in this browser — nothing to share.
